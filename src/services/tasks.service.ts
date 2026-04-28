@@ -38,6 +38,36 @@ export async function completeTask(taskId: string): Promise<void> {
   if (error) throw error
 }
 
+export async function deleteTask(taskId: string): Promise<void> {
+  const supabase = createClient()
+  const { error } = await supabase.from('tasks').delete().eq('id', taskId)
+  if (error) throw error
+}
+
+/**
+ * Returns a map of taskId → number of daily_entries linked to that task.
+ * Used to render progress dots on task cards. Done as a separate query
+ * because Supabase JS doesn't expose a clean grouped-count primitive.
+ */
+export async function getTaskEntryCounts(userId: string): Promise<Record<string, number>> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('daily_entries')
+    .select('task_id')
+    .eq('user_id', userId)
+    .not('task_id', 'is', null)
+
+  if (error) throw error
+
+  const counts: Record<string, number> = {}
+  for (const row of data ?? []) {
+    const taskId = (row as { task_id: string | null }).task_id
+    if (!taskId) continue
+    counts[taskId] = (counts[taskId] ?? 0) + 1
+  }
+  return counts
+}
+
 function mapTask(row: Record<string, unknown>): Task {
   return {
     id: row.id as string,
