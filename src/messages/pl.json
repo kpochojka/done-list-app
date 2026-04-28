@@ -72,6 +72,7 @@
     "completedSection": "Ukończone zadania",
     "completeButton": "Zakończ zadanie (+{points} pkt)",
     "completedBadge": "Ukończone ✓",
+    "entryCount": "{count, plural, =0 {bez wpisów} =1 {1 wpis} few {# wpisy} many {# wpisów} other {# wpisów}}",
     "addNewButton": "Dodaj zadanie",
     "addTitle": "Nowe zadanie",
     "titlePlaceholder": "Nazwa zadania",

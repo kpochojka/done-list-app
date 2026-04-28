@@ -36,11 +36,12 @@ const tabBase: React.CSSProperties = {
   flex: 1,
   padding: '10px 0',
   border: 'none',
-  borderRadius: 10,
-  fontSize: 14,
-  fontWeight: 600,
+  borderRadius: 999,
+  fontSize: 13,
+  fontWeight: 500,
   cursor: 'pointer',
-  transition: 'background 0.15s, color 0.15s',
+  letterSpacing: 0.1,
+  transition: 'background 0.15s, color 0.15s, box-shadow 0.15s',
 }
 
 const styles: Record<string, React.CSSProperties> = {
@@ -48,8 +49,11 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     gap: 4,
     background: 'var(--bg-surface-2)',
-    borderRadius: 14,
+    borderRadius: 999,
     padding: 4,
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: 'var(--border-subtle)',
   },
   tab: {
     ...tabBase,
@@ -58,9 +62,9 @@ const styles: Record<string, React.CSSProperties> = {
   },
   tabActive: {
     ...tabBase,
-    background: 'var(--bg-surface)',
-    color: 'var(--color-primary)',
-    fontWeight: 700,
-    boxShadow: 'var(--shadow-card)',
+    background: 'var(--gradient-primary, var(--color-primary))',
+    color: 'var(--text-inverse)',
+    fontWeight: 600,
+    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.08)',
   },
 }

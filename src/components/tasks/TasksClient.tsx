@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { Plus } from 'lucide-react'
 import { useTasks } from '@/hooks/useTasks'
 import { Tabs, type TaskTab } from './Tabs'
 import { CategoryChips } from './CategoryChips'
@@ -56,7 +57,7 @@ export function TasksClient({ userId }: TasksClientProps) {
           style={styles.addButton}
           aria-label={t('addNewButton')}
         >
-          +
+          <Plus size={18} strokeWidth={2} />
         </button>
       </header>
 
@@ -140,8 +141,8 @@ export function TasksClient({ userId }: TasksClientProps) {
 const styles: Record<string, React.CSSProperties> = {
   page: {
     minHeight: '100dvh',
-    background: 'var(--bg-app)',
-    padding: '20px 16px 80px',
+    background: 'transparent',
+    padding: '24px 16px 96px',
     maxWidth: 560,
     margin: '0 auto',
     display: 'flex',
@@ -153,30 +154,31 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingTop: 4,
+    paddingBottom: 4,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 800,
+    fontSize: 30,
+    fontWeight: 700,
     color: 'var(--text-primary)',
-    letterSpacing: -0.3,
+    letterSpacing: -0.022,
+    lineHeight: 1.1,
   },
   addButton: {
-    width: 40,
-    height: 40,
+    width: 42,
+    height: 42,
     borderRadius: 999,
     border: 'none',
-    background: 'var(--color-primary)',
+    background: 'var(--gradient-primary, var(--color-primary))',
     color: 'var(--text-inverse)',
-    fontSize: 22,
-    fontWeight: 700,
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: 'var(--shadow-card)',
+    boxShadow: '0 4px 14px rgba(124, 58, 237, 0.28), var(--shadow-card)',
+    transition: 'transform 0.15s, box-shadow 0.15s',
   },
   tabsWrap: {
-    marginTop: 4,
+    marginTop: 8,
   },
   chipsWrap: {
     marginTop: 2,
@@ -184,19 +186,20 @@ const styles: Record<string, React.CSSProperties> = {
   body: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 22,
+    gap: 24,
     marginTop: 6,
   },
   section: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 10,
+    gap: 12,
   },
   sectionLabel: {
-    fontSize: 13,
-    fontWeight: 700,
+    fontSize: 11,
+    fontWeight: 600,
+    fontFamily: 'inherit',
     textTransform: 'uppercase',
-    letterSpacing: 0.4,
+    letterSpacing: 1,
     color: 'var(--text-muted)',
   },
   list: {
@@ -208,11 +211,13 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 14,
     color: 'var(--text-muted)',
     background: 'var(--bg-surface)',
-    border: '1px dashed var(--border-default)',
-    padding: '20px 16px',
-    borderRadius: 16,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: 'var(--border-default)',
+    padding: '24px 16px',
+    borderRadius: 14,
     textAlign: 'center',
-    lineHeight: 1.5,
+    lineHeight: 1.6,
   },
   muted: {
     fontSize: 14,

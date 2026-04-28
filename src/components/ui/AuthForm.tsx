@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import Link from 'next/link'
+import { Mail } from 'lucide-react'
 import { login, register, sendMagicLink, type AuthState } from '@/app/actions/auth'
 
 type Mode = 'login' | 'register'
@@ -32,7 +33,9 @@ export function AuthForm({ mode, locale }: AuthFormProps) {
   if (state.message === 'check-email') {
     return (
       <div style={styles.card}>
-        <div style={styles.successIcon}>✉️</div>
+        <div style={styles.successIcon}>
+          <Mail size={28} strokeWidth={1.6} />
+        </div>
         <h2 style={styles.successTitle}>Sprawdź swoją skrzynkę!</h2>
         <p style={styles.successText}>
           Link potwierdzający konto został wysłany. Kliknij go, by się zalogować.
@@ -44,7 +47,9 @@ export function AuthForm({ mode, locale }: AuthFormProps) {
   if (state.message === 'magic-link-sent') {
     return (
       <div style={styles.card}>
-        <div style={styles.successIcon}>✉️</div>
+        <div style={styles.successIcon}>
+          <Mail size={28} strokeWidth={1.6} />
+        </div>
         <h2 style={styles.successTitle}>Sprawdź swoją skrzynkę!</h2>
         <p style={styles.successText}>
           Magic link do logowania został wysłany. Kliknij go w wiadomości email.
@@ -144,10 +149,12 @@ export function AuthForm({ mode, locale }: AuthFormProps) {
 const styles: Record<string, React.CSSProperties> = {
   card: {
     background: 'var(--bg-surface)',
-    borderRadius: 24,
-    padding: '32px 24px',
+    borderRadius: 18,
+    padding: '32px 26px',
     boxShadow: 'var(--shadow-modal)',
-    border: '1px solid var(--border-default)',
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: 'var(--border-default)',
     width: '100%',
     maxWidth: 400,
   },
@@ -156,18 +163,19 @@ const styles: Record<string, React.CSSProperties> = {
   },
   title: {
     fontSize: 26,
-    fontWeight: 800,
+    fontWeight: 700,
     color: 'var(--text-primary)',
     marginBottom: 6,
+    letterSpacing: -0.022,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 14,
     color: 'var(--text-secondary)',
-    lineHeight: 1.5,
+    lineHeight: 1.6,
   },
   tabs: {
     display: 'flex',
-    gap: 8,
+    gap: 4,
     marginBottom: 20,
     background: 'var(--bg-surface-2)',
     borderRadius: 12,
@@ -179,8 +187,8 @@ const styles: Record<string, React.CSSProperties> = {
     border: 'none',
     background: 'transparent',
     borderRadius: 8,
-    fontSize: 14,
-    fontWeight: 600,
+    fontSize: 13,
+    fontWeight: 500,
     color: 'var(--text-secondary)',
     cursor: 'pointer',
   },
@@ -190,16 +198,16 @@ const styles: Record<string, React.CSSProperties> = {
     border: 'none',
     background: 'var(--bg-surface)',
     borderRadius: 8,
-    fontSize: 14,
-    fontWeight: 700,
+    fontSize: 13,
+    fontWeight: 600,
     color: 'var(--color-primary)',
     cursor: 'pointer',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+    boxShadow: 'var(--shadow-card)',
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 16,
+    gap: 14,
   },
   field: {
     display: 'flex',
@@ -207,80 +215,96 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 6,
   },
   label: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 600,
-    color: 'var(--text-secondary)',
+    color: 'var(--text-muted)',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   input: {
     padding: '12px 14px',
-    borderRadius: 12,
-    border: '1.5px solid var(--border-default)',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: 'var(--border-default)',
     background: 'var(--bg-surface-2)',
     color: 'var(--text-primary)',
     fontSize: 15,
     outline: 'none',
     transition: 'border-color 0.15s',
+    fontFamily: 'inherit',
   },
   error: {
     fontSize: 13,
-    color: '#ef4444',
-    background: '#fef2f2',
+    color: 'var(--color-primary-dark)',
+    background: 'var(--color-warning-subtle)',
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: 'var(--color-focus-border)',
     borderRadius: 8,
     padding: '8px 12px',
   },
   button: {
     marginTop: 4,
-    padding: '14px',
-    borderRadius: 14,
+    padding: '13px',
+    borderRadius: 12,
     border: 'none',
-    background: 'var(--color-primary)',
+    background: 'var(--gradient-primary, var(--color-primary))',
     color: 'var(--text-inverse)',
-    fontSize: 16,
-    fontWeight: 700,
+    fontSize: 15,
+    fontWeight: 600,
+    letterSpacing: 0.2,
     cursor: 'pointer',
-    transition: 'background 0.15s',
+    boxShadow: '0 4px 14px rgba(124, 58, 237, 0.22)',
+    transition: 'transform 0.15s, box-shadow 0.15s',
   },
   buttonDisabled: {
     marginTop: 4,
-    padding: '14px',
-    borderRadius: 14,
+    padding: '13px',
+    borderRadius: 12,
     border: 'none',
-    background: 'var(--color-primary-light)',
-    color: 'var(--text-inverse)',
-    fontSize: 16,
-    fontWeight: 700,
+    background: 'var(--bg-surface-3)',
+    color: 'var(--text-muted)',
+    fontSize: 15,
+    fontWeight: 600,
     cursor: 'not-allowed',
-    opacity: 0.7,
   },
   switchRow: {
     marginTop: 20,
     display: 'flex',
     justifyContent: 'center',
     gap: 6,
-    fontSize: 14,
+    fontSize: 13,
   },
   switchText: {
     color: 'var(--text-secondary)',
   },
   switchLink: {
     color: 'var(--color-primary)',
-    fontWeight: 700,
+    fontWeight: 600,
     textDecoration: 'none',
   },
   successIcon: {
-    fontSize: 48,
-    textAlign: 'center',
-    marginBottom: 16,
+    width: 56,
+    height: 56,
+    borderRadius: 14,
+    margin: '0 auto 16px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'var(--color-primary-subtle)',
+    color: 'var(--color-primary)',
   },
   successTitle: {
     fontSize: 22,
-    fontWeight: 800,
+    fontWeight: 700,
     color: 'var(--text-primary)',
     textAlign: 'center',
     marginBottom: 10,
+    letterSpacing: -0.018,
   },
   successText: {
-    fontSize: 15,
+    fontSize: 14,
     color: 'var(--text-secondary)',
     textAlign: 'center',
     lineHeight: 1.6,

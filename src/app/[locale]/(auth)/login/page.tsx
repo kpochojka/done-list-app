@@ -1,3 +1,4 @@
+import { Sprout } from 'lucide-react'
 import { AuthForm } from '@/components/ui/AuthForm'
 
 export default async function LoginPage({ params }: PageProps<'/[locale]/login'>) {
@@ -6,7 +7,9 @@ export default async function LoginPage({ params }: PageProps<'/[locale]/login'>
   return (
     <main style={styles.page}>
       <div style={styles.brand}>
-        <span style={styles.brandIcon}>⭐</span>
+        <span style={styles.brandIcon}>
+          <Sprout size={26} strokeWidth={1.6} />
+        </span>
         <span style={styles.brandName}>Progress Companion</span>
       </div>
       <AuthForm mode="login" locale={locale} />
@@ -17,7 +20,7 @@ export default async function LoginPage({ params }: PageProps<'/[locale]/login'>
 const styles: Record<string, React.CSSProperties> = {
   page: {
     minHeight: '100dvh',
-    background: 'var(--bg-app)',
+    background: 'transparent',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -31,11 +34,20 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 10,
   },
   brandIcon: {
-    fontSize: 32,
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'var(--color-primary-subtle)',
+    color: 'var(--color-primary)',
   },
   brandName: {
     fontSize: 20,
-    fontWeight: 800,
+    fontWeight: 600,
     color: 'var(--color-primary)',
+    fontFamily: 'var(--font-serif, serif)',
+    letterSpacing: -0.01,
   },
 }

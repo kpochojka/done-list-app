@@ -1,20 +1,24 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import { Calendar, CheckSquare, Gift, ListTodo, Sun, type LucideIcon } from 'lucide-react'
 import { Link, usePathname } from '@/i18n/navigation'
 
-type NavItem = {
-  href: '/today' | '/tasks' | '/tree' | '/rewards' | '/history'
-  labelKey: 'today' | 'tasks' | 'tree' | 'rewards' | 'history'
-  icon: string
+type NavHref = '/today' | '/tasks' | '/tree' | '/rewards' | '/history'
+type NavKey = 'today' | 'tasks' | 'tree' | 'rewards' | 'history'
+
+interface NavItem {
+  href: NavHref
+  labelKey: NavKey
+  Icon: LucideIcon
 }
 
 const ITEMS: NavItem[] = [
-  { href: '/today',   labelKey: 'today',   icon: '☀️' },
-  { href: '/tasks',   labelKey: 'tasks',   icon: '✅' },
-  { href: '/tree',    labelKey: 'tree',    icon: '🌳' },
-  { href: '/rewards', labelKey: 'rewards', icon: '🎁' },
-  { href: '/history', labelKey: 'history', icon: '📅' },
+  { href: '/today',   labelKey: 'today',   Icon: Sun },
+  { href: '/tasks',   labelKey: 'tasks',   Icon: ListTodo },
+  { href: '/tree',    labelKey: 'tree',    Icon: CheckSquare },
+  { href: '/rewards', labelKey: 'rewards', Icon: Gift },
+  { href: '/history', labelKey: 'history', Icon: Calendar },
 ]
 
 export function BottomNav() {
@@ -23,17 +27,17 @@ export function BottomNav() {
 
   return (
     <nav style={styles.nav} aria-label="Main navigation">
-      {ITEMS.map((item) => {
-        const active = pathname === item.href
+      {ITEMS.map(({ href, labelKey, Icon }) => {
+        const active = pathname === href
         return (
           <Link
-            key={item.href}
-            href={item.href}
+            key={href}
+            href={href}
             style={active ? styles.itemActive : styles.item}
             aria-current={active ? 'page' : undefined}
           >
-            <span aria-hidden style={styles.icon}>{item.icon}</span>
-            <span style={styles.label}>{t(item.labelKey)}</span>
+            <Icon size={20} strokeWidth={active ? 2 : 1.6} />
+            <span style={styles.label}>{t(labelKey)}</span>
           </Link>
         )
       })}
@@ -43,18 +47,19 @@ export function BottomNav() {
 
 const itemBase: React.CSSProperties = {
   flex: 1,
+  position: 'relative',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
-  gap: 2,
-  padding: '8px 6px',
+  gap: 4,
+  padding: '10px 6px',
   fontSize: 11,
-  fontWeight: 600,
+  fontWeight: 500,
   textDecoration: 'none',
   color: 'var(--text-muted)',
-  borderRadius: 12,
-  transition: 'color 0.15s, background 0.15s',
+  borderRadius: 10,
+  transition: 'color 0.15s',
 }
 
 const styles: Record<string, React.CSSProperties> = {
@@ -65,10 +70,12 @@ const styles: Record<string, React.CSSProperties> = {
     right: 0,
     zIndex: 40,
     display: 'flex',
-    gap: 4,
-    padding: '8px 8px calc(8px + env(safe-area-inset-bottom))',
+    gap: 2,
+    padding: '6px 8px calc(6px + env(safe-area-inset-bottom))',
     background: 'var(--bg-surface)',
-    borderTop: '1px solid var(--border-default)',
+    borderTopWidth: 1,
+    borderTopStyle: 'solid',
+    borderTopColor: 'var(--border-default)',
     boxShadow: 'var(--shadow-modal)',
     maxWidth: 560,
     margin: '0 auto',
@@ -78,13 +85,10 @@ const styles: Record<string, React.CSSProperties> = {
     ...itemBase,
     color: 'var(--color-primary)',
     background: 'var(--color-primary-subtle)',
-    fontWeight: 700,
-  },
-  icon: {
-    fontSize: 20,
-    lineHeight: 1,
+    fontWeight: 600,
   },
   label: {
     fontSize: 11,
+    letterSpacing: 0.1,
   },
 }

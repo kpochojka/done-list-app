@@ -1,11 +1,12 @@
+/* Forest Focus — white app, soft sage surfaces with green primary */
 [data-theme="forest"][data-mode="light"] {
   --bg-app:           #ffffff;
-  --bg-surface:       #f0fdf4;
-  --bg-surface-2:     #dcfce7;
-  --bg-surface-3:     #bbf7d0;
-  --bg-overlay:       rgba(0, 0, 0, 0.4);
+  --bg-surface:       #ffffff;
+  --bg-surface-2:     #f3faf2;
+  --bg-surface-3:     #e3f2e0;
+  --bg-overlay:       rgba(6, 46, 32, 0.40);
 
-  --text-primary:     #052e16;
+  --text-primary:     #14291f;
   --text-secondary:   #475569;
   --text-muted:       #94a3b8;
   --text-inverse:     #ffffff;
@@ -13,18 +14,25 @@
   --color-primary:        #16a34a;
   --color-primary-light:  #4ade80;
   --color-primary-dark:   #15803d;
-  --color-primary-subtle: #f0fdf4;
+  --color-primary-subtle: #ecfdf5;
 
   --color-success:        #10b981;
-  --color-success-subtle: #d1fae5;
+  --color-success-subtle: #ecfdf5;
   --color-warning:        #f59e0b;
   --color-warning-subtle: #fffbeb;
-  --color-focus-border:   #f59e0b;
+  --color-focus-border:   #fcd34d;
 
-  --border-default: #bbf7d0;
-  --border-subtle:  #dcfce7;
+  --border-default: #d8efd8;
+  --border-subtle:  #ecf8ec;
   --shadow-card:    0 2px 12px rgba(22, 163, 74, 0.08);
   --shadow-modal:   0 -4px 32px rgba(22, 163, 74, 0.12);
+
+  --gradient-bg:
+    radial-gradient(ellipse 70% 40% at 100% 0%, rgba(74, 222, 128, 0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 35% at 0% 100%, rgba(22, 163, 74, 0.06) 0%, transparent 60%);
+  --gradient-primary:        linear-gradient(135deg, #4ade80 0%, #16a34a 100%);
+  --gradient-primary-hover:  linear-gradient(135deg, #86efac 0%, #15803d 100%);
+  --gradient-accent:         linear-gradient(135deg, #ecfdf5 0%, #fffbeb 100%);
 
   --cat-work:     #3b82f6;
   --cat-learn:    #8b5cf6;
@@ -34,21 +42,21 @@
 }
 
 [data-theme="forest"][data-mode="dark"] {
-  --bg-app:           #031a0a;
-  --bg-surface:       #092714;
-  --bg-surface-2:     #0f3520;
-  --bg-surface-3:     #16452c;
+  --bg-app:           #08120e;
+  --bg-surface:       #111c17;
+  --bg-surface-2:     #182821;
+  --bg-surface-3:     #21362d;
   --bg-overlay:       rgba(0, 0, 0, 0.6);
 
-  --text-primary:     #dcfce7;
-  --text-secondary:   #6dbb8a;
-  --text-muted:       #2d5c3f;
+  --text-primary:     #ecfaef;
+  --text-secondary:   #9bb5a3;
+  --text-muted:       #5c6e64;
   --text-inverse:     #ffffff;
 
   --color-primary:        #4ade80;
   --color-primary-light:  #86efac;
   --color-primary-dark:   #16a34a;
-  --color-primary-subtle: #0a2e15;
+  --color-primary-subtle: #0a2e22;
 
   --color-success:        #34d399;
   --color-success-subtle: #0d2318;
@@ -56,10 +64,16 @@
   --color-warning-subtle: #261c06;
   --color-focus-border:   #fbbf2466;
 
-  --border-default: #16452c;
-  --border-subtle:  #0f3520;
-  --shadow-card:    0 2px 12px rgba(0, 0, 0, 0.35);
-  --shadow-modal:   0 -4px 32px rgba(0, 0, 0, 0.55);
+  --border-default: #213b2d;
+  --border-subtle:  #182821;
+  --shadow-card:    0 2px 12px rgba(0, 0, 0, 0.3);
+  --shadow-modal:   0 -4px 32px rgba(0, 0, 0, 0.5);
+
+  --gradient-bg:
+    radial-gradient(ellipse 70% 40% at 100% 0%, rgba(74, 222, 128, 0.08) 0%, transparent 60%);
+  --gradient-primary:        linear-gradient(135deg, #86efac 0%, #16a34a 100%);
+  --gradient-primary-hover:  linear-gradient(135deg, #bbf7d0 0%, #4ade80 100%);
+  --gradient-accent:         linear-gradient(135deg, #182821 0%, #261c06 100%);
 
   --cat-work:     #60a5fa;
   --cat-learn:    #a78bfa;

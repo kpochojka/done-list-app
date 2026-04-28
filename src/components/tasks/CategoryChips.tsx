@@ -3,6 +3,8 @@
 import type { Category } from '@/types'
 import { getCategoryDisplayName } from './categoryName'
 import { useTranslations } from 'next-intl'
+import { CategoryIcon } from '@/components/ui/Icon'
+import { LayoutGrid } from 'lucide-react'
 
 interface CategoryChipsProps {
   categories: Category[]
@@ -20,82 +22,138 @@ export function CategoryChips({
   const t = useTranslations('tasks')
   const tCat = useTranslations('categories')
 
-  const chips: Array<{ id: string; label: string; icon: string | null; color: string | null }> = [
-    { id: ALL_CHIP_ID, label: t('filterAll'), icon: null, color: null },
-    ...categories.map((c) => ({
-      id: c.id,
-      label: getCategoryDisplayName(c, tCat),
-      icon: c.icon,
-      color: c.color,
-    })),
-  ]
-
   return (
     <div style={styles.scroll} role="tablist">
-      {chips.map((chip) => {
-        const active =
-          chip.id === ALL_CHIP_ID ? selectedId === null : selectedId === chip.id
-        return (
-          <button
-            key={chip.id}
-            type="button"
-            role="tab"
-            aria-selected={active}
-            onClick={() => onSelect(chip.id === ALL_CHIP_ID ? null : chip.id)}
-            style={active ? styles.chipActive : styles.chip}
-          >
-            {chip.icon && (
-              <span aria-hidden style={styles.chipIcon}>
-                {chip.icon}
-              </span>
-            )}
-            <span>{chip.label}</span>
-          </button>
-        )
-      })}
+      <CategoryButton
+        active={selectedId === null}
+        label={t('filterAll')}
+        color="var(--color-primary)"
+        onClick={() => onSelect(null)}
+        icon={<LayoutGrid size={18} strokeWidth={1.75} />}
+        useThemePrimary
+      />
+
+      {categories.map((c) => (
+        <CategoryButton
+          key={c.id}
+          active={selectedId === c.id}
+          label={getCategoryDisplayName(c, tCat)}
+          color={c.color}
+          onClick={() => onSelect(c.id)}
+          icon={<CategoryIcon name={c.icon} size={18} strokeWidth={1.75} />}
+        />
+      ))}
     </div>
   )
 }
 
-const chipBase: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 6,
-  padding: '8px 14px',
-  borderRadius: 999,
-  borderWidth: 1.5,
-  borderStyle: 'solid',
-  borderColor: 'var(--border-default)',
-  background: 'var(--bg-surface)',
-  color: 'var(--text-secondary)',
-  fontSize: 13,
-  fontWeight: 600,
-  cursor: 'pointer',
-  whiteSpace: 'nowrap',
-  flexShrink: 0,
-  transition: 'all 0.15s',
+interface CategoryButtonProps {
+  active: boolean
+  label: string
+  color: string
+  onClick: () => void
+  icon: React.ReactNode
+  /** True for the "All" chip — uses theme primary tokens directly. */
+  useThemePrimary?: boolean
+}
+
+function CategoryButton({
+  active,
+  label,
+  color,
+  onClick,
+  icon,
+  useThemePrimary = false,
+}: CategoryButtonProps) {
+  const tileBg = useThemePrimary
+    ? active
+      ? 'var(--gradient-primary, var(--color-primary))'
+      : 'var(--color-primary-subtle)'
+    : active
+      ? color
+      : `color-mix(in oklab, ${color} 14%, var(--bg-surface))`
+
+  const iconColor = useThemePrimary
+    ? active
+      ? 'var(--text-inverse)'
+      : 'var(--color-primary)'
+    : active
+      ? 'var(--text-inverse)'
+      : color
+
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      style={styles.button}
+    >
+      <span
+        style={{
+          ...styles.iconTile,
+          background: tileBg,
+          color: iconColor,
+          boxShadow: active
+            ? `0 4px 12px color-mix(in oklab, ${useThemePrimary ? '#7c3aed' : color} 28%, transparent)`
+            : 'none',
+        }}
+      >
+        {icon}
+      </span>
+      <span
+        style={{
+          ...styles.label,
+          color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
+          fontWeight: active ? 600 : 500,
+        }}
+      >
+        {label}
+      </span>
+    </button>
+  )
 }
 
 const styles: Record<string, React.CSSProperties> = {
   scroll: {
     display: 'flex',
-    gap: 8,
+    gap: 14,
     overflowX: 'auto',
-    paddingBottom: 4,
     margin: '0 -16px',
-    padding: '4px 16px',
+    padding: '4px 16px 8px',
     scrollbarWidth: 'none',
     WebkitOverflowScrolling: 'touch',
   },
-  chip: chipBase,
-  chipActive: {
-    ...chipBase,
-    background: 'var(--color-primary)',
-    color: 'var(--text-inverse)',
-    borderColor: 'var(--color-primary)',
+  button: {
+    flexShrink: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 6,
+    padding: 0,
+    border: 'none',
+    background: 'transparent',
+    cursor: 'pointer',
+    width: 64,
   },
-  chipIcon: {
-    fontSize: 14,
-    lineHeight: 1,
+  iconTile: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'background 0.18s, color 0.18s, box-shadow 0.18s',
+  },
+  label: {
+    fontSize: 11,
+    lineHeight: 1.2,
+    letterSpacing: 0.05,
+    textAlign: 'center',
+    transition: 'color 0.15s',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    maxWidth: '100%',
   },
 }

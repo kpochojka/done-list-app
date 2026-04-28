@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { X } from 'lucide-react'
 import type { Category } from '@/types'
 import { getCategoryDisplayName } from './categoryName'
+import { CategoryIcon } from '@/components/ui/Icon'
 
 interface AddTaskModalProps {
   open: boolean
@@ -72,7 +74,7 @@ export function AddTaskModal({
             style={styles.closeButton}
             aria-label={tCommon('cancel')}
           >
-            ✕
+            <X size={16} strokeWidth={2} />
           </button>
         </div>
 
@@ -109,7 +111,9 @@ export function AddTaskModal({
                         : styles.categoryChip
                     }
                   >
-                    <span aria-hidden style={styles.catIcon}>{c.icon}</span>
+                    <span style={styles.catIcon}>
+                      <CategoryIcon name={c.icon} size={14} strokeWidth={1.75} />
+                    </span>
                     <span>{getCategoryDisplayName(c, tCat)}</span>
                   </button>
                 )
@@ -148,14 +152,13 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'flex-end',
     justifyContent: 'center',
     zIndex: 50,
-    animation: 'fadeIn 0.2s ease-out',
   },
   sheet: {
     width: '100%',
     maxWidth: 480,
     background: 'var(--bg-surface)',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     padding: '12px 20px 24px',
     boxShadow: 'var(--shadow-modal)',
     maxHeight: '90vh',
@@ -175,9 +178,10 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: 18,
   },
   title: {
-    fontSize: 20,
-    fontWeight: 800,
+    fontSize: 22,
+    fontWeight: 700,
     color: 'var(--text-primary)',
+    letterSpacing: -0.018,
   },
   closeButton: {
     width: 32,
@@ -186,8 +190,10 @@ const styles: Record<string, React.CSSProperties> = {
     border: 'none',
     background: 'var(--bg-surface-2)',
     color: 'var(--text-secondary)',
-    fontSize: 16,
     cursor: 'pointer',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   form: {
     display: 'flex',
@@ -200,19 +206,24 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 8,
   },
   label: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: 600,
-    color: 'var(--text-secondary)',
+    color: 'var(--text-muted)',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   input: {
     padding: '14px 16px',
-    borderRadius: 14,
-    border: '1.5px solid var(--border-default)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: 'var(--border-default)',
     background: 'var(--bg-surface-2)',
     color: 'var(--text-primary)',
     fontSize: 15,
     outline: 'none',
     width: '100%',
+    fontFamily: 'inherit',
   },
   categoryGrid: {
     display: 'flex',
@@ -222,24 +233,27 @@ const styles: Record<string, React.CSSProperties> = {
   categoryChip: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: 6,
+    gap: 7,
     padding: '8px 14px',
     borderRadius: 999,
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderStyle: 'solid',
     borderColor: 'var(--border-default)',
     background: 'var(--bg-surface-2)',
     color: 'var(--text-secondary)',
     fontSize: 13,
-    fontWeight: 600,
+    fontWeight: 500,
     cursor: 'pointer',
+    transition: 'background 0.15s, color 0.15s, border-color 0.15s',
   },
   categoryChipActive: {
     color: 'var(--text-inverse)',
+    fontWeight: 600,
   },
   catIcon: {
-    fontSize: 14,
-    lineHeight: 1,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   actions: {
     display: 'flex',
@@ -249,35 +263,38 @@ const styles: Record<string, React.CSSProperties> = {
   cancelButton: {
     flex: 1,
     padding: '14px',
-    borderRadius: 14,
-    border: '1.5px solid var(--border-default)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: 'var(--border-default)',
     background: 'transparent',
     color: 'var(--text-secondary)',
-    fontSize: 15,
-    fontWeight: 700,
+    fontSize: 14,
+    fontWeight: 600,
     cursor: 'pointer',
   },
   saveButton: {
     flex: 2,
     padding: '14px',
-    borderRadius: 14,
+    borderRadius: 12,
     border: 'none',
-    background: 'var(--color-primary)',
+    background: 'var(--gradient-primary, var(--color-primary))',
     color: 'var(--text-inverse)',
-    fontSize: 15,
-    fontWeight: 700,
+    fontSize: 14,
+    fontWeight: 600,
     cursor: 'pointer',
+    letterSpacing: 0.2,
+    boxShadow: '0 4px 12px rgba(124, 58, 237, 0.22)',
   },
   saveButtonDisabled: {
     flex: 2,
     padding: '14px',
-    borderRadius: 14,
+    borderRadius: 12,
     border: 'none',
-    background: 'var(--color-primary-light)',
-    color: 'var(--text-inverse)',
-    fontSize: 15,
-    fontWeight: 700,
+    background: 'var(--bg-surface-3)',
+    color: 'var(--text-muted)',
+    fontSize: 14,
+    fontWeight: 600,
     cursor: 'not-allowed',
-    opacity: 0.6,
   },
 }
