@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@import "./themes/purple.css";
+@import "./themes/ocean.css";
+@import "./themes/forest.css";
+@import "./themes/sunset.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Default theme applied at root — overridden by ThemeProvider */
+:root {
+  --bg-app:           #ffffff;
+  --bg-surface:       #f8f7ff;
+  --bg-surface-2:     #f1efff;
+  --bg-surface-3:     #e8e5ff;
+  --bg-overlay:       rgba(0, 0, 0, 0.4);
+
+  --text-primary:     #1e1b4b;
+  --text-secondary:   #64748b;
+  --text-muted:       #94a3b8;
+  --text-inverse:     #ffffff;
+
+  --color-primary:        #7c3aed;
+  --color-primary-light:  #a78bfa;
+  --color-primary-dark:   #6d28d9;
+  --color-primary-subtle: #f3f0ff;
+
+  --color-success:        #10b981;
+  --color-success-subtle: #f0fdf4;
+  --color-warning:        #f59e0b;
+  --color-warning-subtle: #fffbeb;
+  --color-focus-border:   #f59e0b;
+
+  --border-default: #e8e5ff;
+  --border-subtle:  #f1efff;
+  --shadow-card:    0 2px 12px rgba(124, 58, 237, 0.08);
+  --shadow-modal:   0 -4px 32px rgba(124, 58, 237, 0.12);
+
+  --cat-work:     #3b82f6;
+  --cat-learn:    #8b5cf6;
+  --cat-spanish:  #10b981;
+  --cat-health:   #ef4444;
+  --cat-home:     #f59e0b;
+}
