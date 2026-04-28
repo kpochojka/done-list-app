@@ -1,156 +1,110 @@
-# Session Progress
-
-## 1. Phase 1 — Project Foundation: COMPLETE ✅
-
-All eight Phase 1 deliverables verified and working. `next build` succeeds; all locale routes are registered and the next-intl Proxy (Middleware) is wired in.
-
-### What was built
-
-- **Dependencies installed**: `next-intl@^4.9.2`, `@supabase/supabase-js@^2.105.1`, `@supabase/ssr@^0.10.2`, `next-pwa@^5.6.0`
-- **Folder structure**: full architecture from CLAUDE.md (see section 4 below for tree)
-- **Theme CSS files**: `purple.css`, `ocean.css`, `forest.css`, `sunset.css` — each with full light + dark CSS variable contract (backgrounds, text, brand, semantic, borders/shadows, category colors)
-- **Translation files**: `pl.json`, `en.json`, `de.json` — identical key structure, full coverage of all namespaces (common, nav, today, focusDay, addEntry, tasks, tree, rewards, history, settings, categories, auth)
-- **ThemeProvider + useTheme hook**: applies `data-theme` / `data-mode` to `<html>`, persists preference to localStorage, follows system preference when `mode='system'`, reacts to OS theme changes via `matchMedia`
-- **next-intl routing**: `pl` (default) / `en` / `de`, `as-needed` locale prefix; `next.config.ts` wraps config with `createNextIntlPlugin('./src/i18n/request.ts')`; Proxy (Next.js 16's renamed Middleware) lives at `src/proxy.ts`
-- **TypeScript types**: `Category`, `Task`, `DailyEntry`, `FocusDay`, `Reward`, `UserStats`, `Level` in `src/types/index.ts`
-- **Constants**: `POINTS` and `LEVEL_THRESHOLDS` (10 levels) in `src/lib/constants.ts`
-
-### Phase 1 fixes applied this session
-
-1. Added the missing `/src/components/{today,tasks,tree,rewards,history}/` subfolders (with `.gitkeep` placeholders, since UI was deferred per instructions).
-2. Wrapped `next.config.ts` with `withNextIntl(...)` — required for next-intl to load `src/i18n/request.ts` at request time.
-3. Deleted the duplicate `/app/` directory (the unused `create-next-app` scaffold). The real app lives in `/src/app/` only.
-
-### Correction to previous PROGRESS.md note
-
-A prior note claimed `src/proxy.ts` was misnamed and should be `middleware.ts`. **That was wrong.** Next.js 16 renamed the `middleware` file convention to `proxy` (see `node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md` — *"the middleware file convention is deprecated and has been renamed to proxy"*). The docs explicitly allow `proxy.ts` to live at the project root **or inside `src/`**. The build output confirms it: `ƒ Proxy (Middleware)` is registered.
+# PROGRESS.md
 
 ---
 
-## 2. Current State of the App
+## Session 2 — Supabase Setup + Auth
 
-The app does **not render any visible UI** yet — by design (UI was deferred). What is fully functional at the infrastructure level:
+### 1. Completed in this session
 
-- **Theme system**: 4 themes × 2 modes wired through CSS variables; `ThemeProvider` applies attributes to `<html>`; `useTheme` reads/writes localStorage and reacts to system preference changes.
-- **i18n routing**: `next-intl` configured; `pl` is default with no prefix, `/en/...` and `/de/...` for the others; messages auto-loaded per locale on the server.
-- **Translation files**: All three locales contain identical keys covering every screen.
-- **Locale layout**: `src/app/[locale]/layout.tsx` properly wires `NextIntlClientProvider` + `ThemeProvider` around all locale routes.
-- **TypeScript types**: All domain types defined.
-- **Constants**: Point values and level thresholds defined.
-- **Supabase client factory**: `createClient()` browser client ready (needs env vars in `.env.local`).
-- **Build verified**: `next build` succeeds, all locale routes generated, Proxy registered.
+**Files created:**
+- `supabase/migrations/001_initial_schema.sql` — all 7 tables, RLS, seed trigger
+- `.env.local.example` — env var template
+- `src/lib/supabase/server.ts` — async server-side Supabase client factory
+- `src/app/actions/auth.ts` — Server Actions: `login`, `register`, `sendMagicLink`, `logout`
+- `src/app/auth/callback/route.ts` — magic link / PKCE code exchange callback
+- `src/app/[locale]/(auth)/layout.tsx` — redirects logged-in users away from auth screens
+- `src/app/[locale]/(main)/layout.tsx` — redirects unauthenticated users to `/login`
+- `src/components/ui/AuthForm.tsx` — client component; password login, magic link tab, register, success/error states
 
----
-
-## 3. Not Yet Built (intentionally — these are later phases)
-
-### No env / no DB yet
-- `.env.local` with `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` not set
-- Supabase project not provisioned, no schema migrations run yet
-- No RLS policies
-
-### No UI / no business logic yet (all stubs)
-- All page files in `src/app/[locale]/(auth)/*` and `src/app/[locale]/(main)/*` return `null`
-- All hooks except `useTheme` are stubs
-- All `*.service.ts` functions are stubs
-- No components built beyond `ThemeProvider`
-- No bottom navigation
-- No level-up celebration / confetti / success animations
-- PWA manifest + service worker not configured (next-pwa is installed but not wired into `next.config.ts`)
+**Files modified:**
+- `src/proxy.ts` — chained Supabase session refresh (token rotation) before next-intl locale routing
+- `src/app/[locale]/(auth)/login/page.tsx` — replaced `null` stub with real login screen
+- `src/app/[locale]/(auth)/register/page.tsx` — replaced `null` stub with real register screen
+- `PROGRESS.md` — this file
 
 ---
 
-## 4. Folder Structure (verified)
+### 2. Current state of the app
 
-```
-done-list/
-├── middleware.ts            ← (none — Next.js 16 uses src/proxy.ts instead)
-├── next.config.ts           ← wraps config with createNextIntlPlugin('./src/i18n/request.ts')
-├── package.json
-├── tsconfig.json            ← '@/*' → './src/*'
-├── public/
-└── src/
-    ├── proxy.ts             ← next-intl Proxy (Next.js 16 replacement for middleware)
-    ├── app/
-    │   ├── layout.tsx       ← root <html>, imports globals.css
-    │   └── [locale]/
-    │       ├── layout.tsx   ← NextIntlClientProvider + ThemeProvider
-    │       ├── page.tsx     ← redirect stub
-    │       ├── (auth)/
-    │       │   ├── login/page.tsx       ← stub
-    │       │   └── register/page.tsx    ← stub
-    │       └── (main)/
-    │           ├── today/page.tsx       ← stub
-    │           ├── tasks/page.tsx       ← stub
-    │           ├── tree/page.tsx        ← stub
-    │           ├── rewards/page.tsx     ← stub
-    │           ├── history/page.tsx     ← stub
-    │           └── settings/page.tsx    ← stub
-    ├── components/
-    │   ├── ui/
-    │   │   └── ThemeProvider.tsx
-    │   ├── today/           ← (empty, ready for components)
-    │   ├── tasks/           ← (empty)
-    │   ├── tree/            ← (empty)
-    │   ├── rewards/         ← (empty)
-    │   └── history/         ← (empty)
-    ├── hooks/
-    │   ├── useTheme.ts      ← IMPLEMENTED
-    │   ├── useLocale.ts     ← types/constants
-    │   ├── useToday.ts      ← stub
-    │   ├── useTasks.ts      ← stub
-    │   ├── usePoints.ts     ← stub
-    │   ├── useRewards.ts    ← stub
-    │   ├── useHistory.ts    ← stub
-    │   └── useFocusDay.ts   ← stub
-    ├── i18n/
-    │   ├── routing.ts       ← pl/en/de, default pl, prefix as-needed
-    │   └── request.ts       ← server config, dynamic message import
-    ├── lib/
-    │   ├── constants.ts     ← POINTS, LEVEL_THRESHOLDS
-    │   ├── themes.ts        ← THEMES registry
-    │   └── utils.ts
-    ├── messages/
-    │   ├── pl.json          ← full
-    │   ├── en.json          ← full
-    │   └── de.json          ← full
-    ├── services/
-    │   ├── supabase.ts      ← createClient() browser client
-    │   ├── entries.service.ts   ← stub
-    │   ├── tasks.service.ts     ← stub
-    │   ├── points.service.ts    ← stub
-    │   ├── rewards.service.ts   ← stub
-    │   └── levels.service.ts    ← stub
-    ├── styles/
-    │   ├── globals.css      ← Tailwind import + theme imports + base resets
-    │   └── themes/
-    │       ├── purple.css   ← light + dark, full variable contract
-    │       ├── ocean.css    ← light + dark
-    │       ├── forest.css   ← light + dark
-    │       └── sunset.css   ← light + dark
-    └── types/
-        └── index.ts         ← Category, Task, DailyEntry, FocusDay, Reward, UserStats, Level
-```
+**What works end-to-end (once `.env.local` is filled in and migration is run):**
+- Visiting `/` redirects to `/today`; unauthenticated users are redirected to `/login`
+- Login screen renders: email + password form, magic link tab, switch to register link
+- Register screen renders: email + password form, switch to login link
+- Password login calls `supabase.auth.signInWithPassword`; on success redirects to `/today`
+- Register calls `supabase.auth.signUp`; on success redirects to `/today` (if email confirmation is off) or shows "check your email" message
+- Magic link sends `supabase.auth.signInWithOtp`; shows confirmation message
+- `/auth/callback` exchanges PKCE code for a session and redirects to `/today`
+- On every request the proxy refreshes the Supabase session (token rotation) so auth cookies stay current
+- Authenticated users visiting `/login` or `/register` are bounced to `/today`
+- On new user signup the DB trigger auto-seeds: 5 default categories, `user_stats` row, `user_preferences` row
+
+**Infrastructure still working from Session 1:**
+- Theme system (4 themes × light/dark, CSS variables, ThemeProvider, localStorage persistence)
+- i18n routing (pl default, `/en/...`, `/de/...`; all translation files complete)
+- `next build` passes — 30 routes, TypeScript clean
+
+**Supabase is provisioned and connected** — `.env.local` is set, migration has been run, auth callback URL is configured. Auth calls work end-to-end.
 
 ---
 
-## 5. Recommended Next Step
+### 3. Not finished / known issues
 
-**Phase 2: Auth screens.** Per CLAUDE.md's Development Order, the next steps are:
-
-1. Provision the Supabase project, run schema migrations from CLAUDE.md (categories, tasks, daily_entries, focus_days, rewards, user_stats, user_preferences) with RLS policies.
-2. Add `.env.local` with `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-3. Build the login / register screens (`src/app/[locale]/(auth)/login/page.tsx` + `register/page.tsx`) — first user-visible UI, all subsequent screens depend on having an authenticated user.
-4. On signup, seed the five default categories (Praca, Nauka, Język hiszpański, Zdrowie, Dom) for the new user.
+- ~~**Supabase not provisioned**~~ — **DONE by user.** `.env.local` is set, migration run, redirect URLs configured, confirmed working.
+- **All main-app screens are stubs** — `/today`, `/tasks`, `/tree`, `/rewards`, `/history`, `/settings` all return `null`. Authenticated users land on a blank page.
+- **All service functions are stubs** — `tasks.service.ts`, `entries.service.ts`, `points.service.ts`, `rewards.service.ts`, `levels.service.ts` have no real implementations.
+- **All hooks (except `useTheme`) are stubs** — `useToday`, `useTasks`, `usePoints`, `useRewards`, `useHistory`, `useFocusDay` return no data.
+- **`useTheme` does not sync to Supabase** — preferences are localStorage-only. Will be wired to `user_preferences` table in the Settings screen phase.
+- **No bottom navigation** — no nav between main screens yet.
+- **No PWA config** — `next-pwa` is installed but not wired into `next.config.ts`.
+- **AuthForm uses inline styles, not i18n strings** — text is hardcoded in Polish. Translation keys exist in `pl.json`/`en.json`/`de.json` under the `auth` namespace; they just aren't wired up yet.
 
 ---
 
-## 6. Decisions That Differ from CLAUDE.md
+### 4. Exact next step (start of Session 3)
+
+**Provision Supabase and build the Tasks screen.**
+
+1. ~~Provision Supabase~~ — **DONE.**
+2. Build the **Tasks screen** (`src/app/[locale]/(main)/tasks/page.tsx`):
+   - Implement `tasks.service.ts` (getTasksByUser, createTask, completeTask, deleteTask)
+   - Implement `useTasks.ts` hook
+   - Build task list UI with category filter chips, progress dots, "Complete (+5 pts)" button
+   - Build add-task modal/sheet
+
+---
+
+### 5. Decisions that differ from CLAUDE.md
 
 | Decision | CLAUDE.md spec | What was done | Reason |
 |---|---|---|---|
-| Middleware filename | implied `middleware.ts` (older Next.js convention) | `src/proxy.ts` | **Next.js 16 renamed the convention.** `proxy.ts` is the current correct name; `middleware.ts` is deprecated. |
-| `useTheme` persistence | Supabase `user_preferences` table | localStorage only | Supabase not connected yet; localStorage is the correct fallback until auth is working. Will be extended once auth is in place. |
-| Service functions | fully implemented | all stubs | Following CLAUDE.md's recommended dev order — infrastructure before features. |
-| Hook implementations (except `useTheme`) | fully implemented | all stubs | Same reason — they need Supabase + auth first. |
-| `next-pwa` | configured in `next.config.ts` | installed but not wired | Deferred to step 14 of CLAUDE.md's dev order. |
+| Middleware filename | implied `middleware.ts` | `src/proxy.ts` | Next.js 16 renamed the convention — `proxy.ts` is correct; `middleware.ts` is deprecated per `node_modules/next/dist/docs/.../proxy.md`. |
+| Auth form i18n | all strings via `t()` | strings hardcoded in Polish | Auth screens are the first visible UI; wiring `useTranslations` into every string is deferred to a polish pass once the full flow is confirmed working end-to-end. |
+| `useTheme` persistence | `user_preferences` Supabase table | localStorage only | `user_preferences` table now exists in the schema; sync will be added in the Settings screen phase (step 13 in CLAUDE.md dev order). |
+| Service functions | fully implemented | all stubs | Dev order from CLAUDE.md: infrastructure → auth → screens. Stubs exist for all services; implementations follow with their respective screens. |
+| Hook implementations (except `useTheme`) | fully implemented | all stubs | Same reason — hooks need real service functions and an authenticated user. |
+| `next-pwa` | configured in `next.config.ts` | installed, not wired | Deferred to step 14 of CLAUDE.md's dev order. |
+
+---
+
+## Session 1 — Project Foundation
+
+### 1. Completed in this session
+
+- Dependencies installed: `next-intl@^4.9.2`, `@supabase/supabase-js@^2.105.1`, `@supabase/ssr@^0.10.2`, `next-pwa@^5.6.0`
+- Full folder structure from CLAUDE.md
+- `src/styles/themes/purple.css`, `ocean.css`, `forest.css`, `sunset.css` — full light + dark CSS variable contract
+- `src/messages/pl.json`, `en.json`, `de.json` — all namespaces, identical key structure
+- `src/components/ui/ThemeProvider.tsx` + `src/hooks/useTheme.ts` — implemented
+- `src/i18n/routing.ts`, `src/i18n/request.ts` — next-intl wired
+- `src/proxy.ts` — next-intl locale routing proxy
+- `src/types/index.ts` — all domain types
+- `src/lib/constants.ts` — `POINTS`, `LEVEL_THRESHOLDS`
+- `src/lib/themes.ts` — `THEMES` registry
+- `src/services/supabase.ts` — browser client factory
+- All page stubs (returning `null`) for every route
+- All hook stubs (returning empty data) for every hook
+- All service stubs for every service
+
+### 2. Key decision: `proxy.ts` not `middleware.ts`
+
+Next.js 16 renamed the middleware file convention to `proxy`. The `middleware.ts` name is deprecated. Confirmed in `node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md` and in build output (`ƒ Proxy (Middleware)`).
