@@ -1,4 +1,5 @@
 import type { UserStats } from '@/types'
+import { LEVEL_THRESHOLDS } from '@/lib/constants'
 import { createClient } from './supabase'
 
 export async function getUserStats(userId: string): Promise<UserStats | null> {
@@ -10,21 +11,45 @@ export async function getUserStats(userId: string): Promise<UserStats | null> {
     .single()
 
   if (error) return null
-  return {
-    userId: data.user_id as string,
-    totalPoints: data.total_points as number,
-    currentLevel: data.current_level as number,
-    updatedAt: data.updated_at as string,
-  }
+  return mapStats(data)
 }
 
 export async function addPoints(userId: string, pointsToAdd: number): Promise<UserStats> {
   const supabase = createClient()
-  const { data, error } = await supabase.rpc('add_points', {
-    p_user_id: userId,
-    p_points: pointsToAdd,
-  })
+
+  const current = await getUserStats(userId)
+  const currentTotal = current?.totalPoints ?? 0
+  const newTotal = currentTotal + pointsToAdd
+  const newLevel = computeLevel(newTotal)
+
+  const { data, error } = await supabase
+    .from('user_stats')
+    .update({
+      total_points: newTotal,
+      current_level: newLevel,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('user_id', userId)
+    .select()
+    .single()
 
   if (error) throw error
-  return data as UserStats
+  return mapStats(data)
+}
+
+function computeLevel(totalPoints: number): number {
+  let level = 1
+  for (const t of LEVEL_THRESHOLDS) {
+    if (totalPoints >= t.minPoints) level = t.level
+  }
+  return level
+}
+
+function mapStats(row: Record<string, unknown>): UserStats {
+  return {
+    userId: row.user_id as string,
+    totalPoints: row.total_points as number,
+    currentLevel: row.current_level as number,
+    updatedAt: row.updated_at as string,
+  }
 }

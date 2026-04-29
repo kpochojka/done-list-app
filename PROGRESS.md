@@ -2,6 +2,130 @@
 
 ---
 
+## Session 6 — Today Screen + Design Polish
+
+### 1. Completed in this session
+
+**Files created:**
+
+- `src/services/focusday.service.ts` — CRUD for `focus_days`: `getFocusDay(userId, date)`, `upsertFocusDay(userId, payload)` using `onConflict: 'user_id,date'` so re-setting focus on the same day updates instead of inserting, `deleteFocusDay(userId, date)`
+
+- `src/components/today/FocusDayCard.tsx` — two states:
+  - Unset: dashed soft card with "Ustaw fokus dnia (opcjonalnie) →" prompt and a Target icon
+  - Set: white card (`--bg-surface`, `--shadow-card`, standard border) matching `task.png` — "Fokus dnia ⓘ" label top-left, focus name in large bold (20px/800), "Twój priorytet na dziś" subtitle, two amber pill badges ("+2 pkt za każdy wpis" / "+7 pkt za zakończenie"), large 🎯 emoji illustration bottom-right. Tap anywhere opens the selector
+
+- `src/components/today/FocusDaySelector.tsx` — bottom sheet: "Wybierz fokus dnia" title + "Usuń" button when focus already exists, list of categories as tappable rows (40×40 colored icon tile + name + green Check when selected), "+ Własny fokus" row with expandable text input, amber reminder box, "Zapisz fokus" gradient button
+
+- `src/components/today/AddEntryModal.tsx` — two-tab bottom sheet:
+  - Tab 1 "Z bazy zadań": horizontal category filter chips (scrollable), filtered task list (40×40 icon tile + title + category + amber focus badge if category matches focus), description text input, bottom reminder, submit button disabled until task + description filled
+  - Tab 2 "Własny wpis": category chip grid, single text input
+  - `isFocus` determined automatically: selected category ID === `focusDay.categoryId`
+  - Calls `onSubmit` → on success calls `onSuccess(entry, pointsEarned)` → parent shows SuccessOverlay
+
+- `src/components/today/SuccessOverlay.tsx` — full-screen overlay: 12 CSS-animated confetti pieces (`confetti-piece` class from globals.css) in the 6 brand colors, scale-in card (`success-card` class), 🌟 emoji, "Super! 🌟" heading, "+N punkt" badge, entry title chip with category dot, "Dzisiejsze punkty: X ⭐" line, "Świetnie!" gradient dismiss button
+
+- `src/components/today/TodayClient.tsx` — full screen orchestrator:
+  - Header: "Dziś" (32px/800) + locale-formatted date via `useFormatter` (`useTranslations` for all strings) + today-points pill badge + avatar circle
+  - FocusDayCard (tap → `focusSelectorOpen = true`)
+  - Points strip: two equal cards — left: today points + `⭐` + random motivational string (`motivational_0`–`_3`); right: total points + `⭐` + "Poziom N" in secondary grey + 5px XP bar (computed from `LEVEL_THRESHOLDS`)
+  - Entry list: colored 40×40 icon tile + title + "category · HH:MM" meta + points badge (amber for +2 focus entries, purple for +1 regular)
+  - Empty state, loading state, "+ Dodaj co dziś zrobiłem" gradient full-width CTA
+  - Mounts FocusDaySelector, AddEntryModal, SuccessOverlay as portals
+
+**Files modified:**
+
+- `src/services/points.service.ts` — dropped the `supabase.rpc('add_points', …)` call (RPC never existed in any migration). Replaced with: `getUserStats` → compute `newTotal = currentTotal + pointsToAdd` → `computeLevel(newTotal)` using `LEVEL_THRESHOLDS` → `UPDATE user_stats SET total_points, current_level`. RLS already allows `UPDATE` on `user_stats` for the owning user so no migration is needed
+
+- `src/hooks/useToday.ts` — full implementation replacing the stub:
+  - Parallel fetch on mount: `getEntriesForDate`, `getFocusDay`, `getUserStats`, `getCategories`, `getTasks` (filtered to active only)
+  - `addEntry(payload)`: checks `isFocus` (category match), picks `POINTS.FOCUS_ENTRY` or `POINTS.DAILY_ENTRY`, calls `createEntry`, optimistically prepends to `entries`, calls `addPoints`, updates `stats`
+  - `saveFocusDay(payload)`: calls `upsertFocusDay`, updates local `focusDay`
+  - `removeFocusDay()`: calls `deleteFocusDay`, sets `focusDay = null`
+  - Exports `today` as a local `YYYY-MM-DD` string (computed without UTC conversion so it matches the device's calendar date)
+
+- `src/styles/globals.css` — added:
+  - `@keyframes confetti-fall` — translateY from −10px to 260px + 540° rotation, fading out at 80%
+  - `@keyframes success-pop` — scale from 0.85 → 1.04 → 1 with opacity
+  - `.confetti-piece` — `position: absolute`, 8×8px, 2px border-radius, uses the keyframe
+  - `.success-card` — uses the pop keyframe
+
+- `src/app/[locale]/(main)/today/page.tsx` — replaced `return null` stub with a real server component: authenticates via `createServerSupabaseClient`, redirects to `/login` if no session, renders `<TodayClient userId={user.id} />`
+
+- `src/messages/pl.json`, `en.json`, `de.json` — added `focusDay.priorityLabel`:
+  - pl: "Twój priorytet na dziś"
+  - en: "Your priority for today"
+  - de: "Deine Priorität für heute"
+
+---
+
+### 2. Current state of the app
+
+**Today screen (`/today`) matches `design/task.png`:**
+
+- **Header:** "Dziš" large bold title, locale-formatted date below ("12 maja, środa"), top-right: today-points pill badge (purple subtle bg) + avatar circle
+- **Focus Day card (unset):** dashed border, "Ustaw fokus dnia (opcjonalnie) →" in muted text with Target icon — never alarming, always optional
+- **Focus Day card (set):** white card with shadow; "Fokus dnia ⓘ" label; focus name in large bold; "Twój priorytet na dziś" subtitle; amber "+2 pkt / +7 pkt" pills; 🎯 illustration bottom-right. Matches `task.png` layout exactly
+- **Focus Day Selector sheet:** category list with icon tiles, green checkmark on selected, custom text input, amber reminder, Save/Remove buttons
+- **Points strip:** two equal-width cards — left: today points + ⭐ + motivational; right: total points + ⭐ + "Poziom N" + XP bar
+- **Entry list:** each row = colored 40×40 icon tile → title → "category · time" meta → points badge. Focus entries get an amber badge (+2), regular entries get a purple badge (+1)
+- **Empty state:** translated dashed card, never a red or failure indicator
+- **"+ Dodaj co dziś zrobiłem"** — full-width gradient button, opens two-tab bottom sheet
+  - Tab 1 (from task list): category filter chips, task rows with focus badges, description input
+  - Tab 2 (custom): category chips + text input
+- **Success overlay:** confetti + scale-in card, entry details, points earned, today total, "Świetnie!" button
+- **Points wired end-to-end:** adding an entry updates `user_stats.total_points` and `current_level` in the DB immediately. XP bar and level label reflect actual DB state after each entry
+
+**`/tasks` screen** — still fully functional from Session 5 (no regressions)
+
+**Auth, theme system, i18n routing** — all still working
+
+**Build:** `next build` passes — TypeScript clean, 30 routes
+
+---
+
+### 3. Not finished / known issues
+
+- **Migrations 002 and 003 not auto-applied** — must be run manually in Supabase SQL Editor. Until applied, category icons render as emoji text and colors are the original migration-001 palette, not the UX_1 vivid set. The UI degrades gracefully (CategoryIcon falls back to raw text), but run 002 then 003 before demoing
+- **Focus Day "Complete" button not built** — the "+7 pkt za zakończenie fokusa dnia" pill is visible in FocusDayCard as information only. `focus_days.is_completed` column and `POINTS.FOCUS_COMPLETED` constant are in place; the tap flow to mark it done and award 7 points is deferred
+- **Task completion does not award points** — `completeTask` in `tasks.service.ts` sets `is_completed = true` but does not call `addPoints`. The "+5 pkt" label on the button is informational only. Carry-over from Session 3
+- **Level-up overlay not built** — when `addPoints` changes `current_level`, nothing is shown to the user. The spec calls for a confetti overlay + gift box; this is deferred
+- **AuthForm strings hardcoded Polish** — translation keys exist in `auth` namespace but the form still uses inline Polish strings. Carry-over from Session 2
+- **Tree / Rewards / History / Settings** — bottom nav tabs are present and navigate correctly, but each screen returns null (blank with only the nav). None are implemented yet
+
+---
+
+### 4. Exact next step (start of Session 7)
+
+Build **one of these three** screens (in recommended order):
+
+**Option A — History (`/history`):**
+Implement calendar month/day toggle, day-of-activity dot indicator, "Dzień odpoczynku 🌙" empty state, stats card at bottom. Relatively self-contained — only needs `getEntriesForDate` (already exists) and a new `getEntryDatesForMonth(userId, year, month)` query.
+
+**Option B — Reward Tree (`/tree`):**
+Implement `rewards.service.ts`, `levels.service.ts`, `useRewards.ts`, and the winding-path organic layout from `design/UX_2.png`. More visually complex but high-impact.
+
+**Option C — Wire the two missing point flows first:**
+1. Focus Day "Complete" button in FocusDayCard → calls `completeFocusDay` + `addPoints(userId, 7)`, shows a celebration overlay
+2. Task completion → call `addPoints(userId, 5)` inside `useTasks.completeTask`
+
+Option C is the lowest risk for polish before building new screens.
+
+---
+
+### 5. Decisions that differ from CLAUDE.md
+
+| Decision | CLAUDE.md spec | What was done | Reason |
+|---|---|---|---|
+| `addPoints` implementation | `supabase.rpc('add_points', …)` | Direct SELECT current stats → compute level → UPDATE `user_stats` from the client | The `add_points` RPC was never created in any migration. A two-step client-side update is safe under the existing RLS policies for a single-user app and avoids adding a migration just for plumbing |
+| Focus Day card visual | Not formally specced beyond "Fokus dnia card with two pill badges" | White card (`--bg-surface`) with large bold focus name, "Twój priorytet na dziś" subtitle, and a 🎯 emoji illustration | Matched `design/task.png` exactly — the design shows an illustrated character on the right and the focus name as the dominant text, not the category icon |
+| Focus Day card background | CLAUDE.md mentions "cream bg" | Plain `--bg-surface` (white) with `--shadow-card` | `task.png` shows a white card, not cream. Amber is reserved for the pill badges only, keeping the card clean |
+| Focus Day "complete" CTA | "user manually marks Focus Day as done" | Informational pill only, no action button | Deferred to keep session scope manageable; the data model (`is_completed`, `completed_at`, `FOCUS_COMPLETED = 7`) is fully in place |
+| "Własny fokus" category fallback | Custom focus should allow free text | Falls back to `categories[0].id` as the required `category_id` | `focus_days.category_id` is `NOT NULL` in the schema. Until the custom-focus mode includes a secondary category picker, the first category is used as a safe default |
+| Entry badge colour | Not specced | Amber for +2 focus entries, purple for +1 regular entries | Provides an immediate visual cue that a focus entry earned extra points without needing a separate indicator. Matches the `task.png` design where the first entry (+2) has a visually distinct badge |
+| `focusStar` removed from entry title | CLAUDE.md mentions "Focus entries get a small ⭐ indicator" | Removed — the amber badge colour carries the signal | The badge colour is a cleaner signal than an extra star character appended to the title; avoids clutter on long entry titles |
+
+---
+
 ## Session 5 — Design System Rework: UX_1.png Implementation (Purple Dream)
 
 ### 0. Context

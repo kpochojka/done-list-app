@@ -31,6 +31,7 @@
   },
   "focusDay": {
     "label": "Focus day",
+    "priorityLabel": "Your priority for today",
     "tooltip": "Choose one area to focus on today.",
     "setPrompt": "Set focus day (optional) →",
     "bonusEntry": "+{points} pts for every entry in focus day",

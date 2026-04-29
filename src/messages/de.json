@@ -31,6 +31,7 @@
   },
   "focusDay": {
     "label": "Fokus des Tages",
+    "priorityLabel": "Deine Priorität für heute",
     "tooltip": "Wähle einen Bereich, auf den du dich heute konzentrieren möchtest.",
     "setPrompt": "Fokus des Tages setzen (optional) →",
     "bonusEntry": "+{points} Pkt für jeden Eintrag im Tagesfokus",
