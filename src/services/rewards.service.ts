@@ -44,6 +44,17 @@ export async function claimReward(rewardId: string): Promise<void> {
   if (error) throw error
 }
 
+export async function getRewardAtLevel(userId: string, level: number): Promise<Reward | null> {
+  const supabase = createClient()
+  const { data } = await supabase
+    .from('rewards')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('required_level', level)
+    .maybeSingle()
+  return data ? mapReward(data) : null
+}
+
 function mapReward(row: Record<string, unknown>): Reward {
   return {
     id: row.id as string,

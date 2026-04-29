@@ -60,6 +60,20 @@ export async function upsertFocusDay(
   return mapFocusDay(data)
 }
 
+export async function completeFocusDay(userId: string, date: string): Promise<FocusDay> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('focus_days')
+    .update({ is_completed: true, completed_at: new Date().toISOString() })
+    .eq('user_id', userId)
+    .eq('date', date)
+    .select('*, category:categories(*), task:tasks(*)')
+    .single()
+
+  if (error) throw error
+  return mapFocusDay(data)
+}
+
 export async function deleteFocusDay(userId: string, date: string): Promise<void> {
   const supabase = createClient()
   const { error } = await supabase

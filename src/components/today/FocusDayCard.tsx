@@ -1,7 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { Info, Target } from 'lucide-react'
+import { Info, Target, Check } from 'lucide-react'
 import type { Category, FocusDay } from '@/types'
 import { getCategoryDisplayName } from '@/components/tasks/categoryName'
 import { POINTS } from '@/lib/constants'
@@ -10,9 +10,10 @@ interface FocusDayCardProps {
   focusDay: FocusDay | null
   categories: Category[]
   onEdit: () => void
+  onComplete?: () => void
 }
 
-export function FocusDayCard({ focusDay, categories, onEdit }: FocusDayCardProps) {
+export function FocusDayCard({ focusDay, categories, onEdit, onComplete }: FocusDayCardProps) {
   const t = useTranslations('focusDay')
   const tCat = useTranslations('categories')
 
@@ -33,7 +34,13 @@ export function FocusDayCard({ focusDay, categories, onEdit }: FocusDayCardProps
       : ''
 
   return (
-    <button type="button" onClick={onEdit} style={styles.setCard}>
+    <div
+      style={styles.setCard}
+      onClick={onEdit}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onEdit() }}
+    >
       <div style={styles.cardInner}>
         {/* Left: text content */}
         <div style={styles.textSide}>
@@ -56,7 +63,29 @@ export function FocusDayCard({ focusDay, categories, onEdit }: FocusDayCardProps
           🎯
         </div>
       </div>
-    </button>
+
+      {/* Complete button or completed badge */}
+      {focusDay.isCompleted ? (
+        <div style={styles.completedBadge}>
+          <Check size={14} strokeWidth={2.5} style={{ color: 'var(--color-success)' }} />
+          <span style={styles.completedBadgeText}>{t('completedBadge')}</span>
+        </div>
+      ) : (
+        onComplete && (
+          <button
+            type="button"
+            style={styles.completeButton}
+            onClick={(e) => {
+              e.stopPropagation()
+              onComplete()
+            }}
+          >
+            <Check size={14} strokeWidth={2.5} />
+            {t('completeButton')}
+          </button>
+        )
+      )}
+    </div>
   )
 }
 
@@ -91,6 +120,9 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     textAlign: 'left',
     boxShadow: 'var(--shadow-card)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 12,
   },
   cardInner: {
     display: 'flex',
@@ -149,5 +181,39 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: -4,
     filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.10))',
     userSelect: 'none',
+  },
+  completeButton: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    width: '100%',
+    padding: '10px 16px',
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderStyle: 'solid',
+    borderColor: 'var(--color-success)',
+    background: 'var(--color-success-subtle)',
+    color: 'var(--color-success)',
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: 'pointer',
+  },
+  completedBadge: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    padding: '8px 16px',
+    borderRadius: 12,
+    background: 'var(--color-success-subtle)',
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: 'rgba(16, 185, 129, 0.2)',
+  },
+  completedBadgeText: {
+    fontSize: 13,
+    fontWeight: 700,
+    color: 'var(--color-success)',
   },
 }

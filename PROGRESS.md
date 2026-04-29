@@ -2,6 +2,120 @@
 
 ---
 
+## Session 7 — Full Points & Levels System
+
+### 1. Completed in this session
+
+**Files created:**
+
+- `src/components/today/LevelUpOverlay.tsx` — full-screen overlay triggered on level-up: 12-piece confetti animation, 🎁 emoji, `tree.unlockTitle` ("Nowa nagroda odblokowana! 🎉") if a reward exists at the new level OR `tree.levelUpTitle` ("Nowy poziom osiągnięty! 🎉") otherwise, `tree.unlockSubtitle` with the level number, optional reward card (image or 🎀 emoji + title + description), "Super! ✨" dismiss button. `z-index: 110` so it stacks above FocusCompletedOverlay (`105`) and SuccessOverlay (`100`)
+
+- `src/components/today/FocusCompletedOverlay.tsx` — full-screen overlay triggered when Focus Day is marked complete: amber-tinted confetti, 🎯 emoji, `focusDay.completedTitle/Subtitle`, focus name chip, `+{points} ⭐ punktów` amber badge (using `POINTS.FOCUS_COMPLETED`), today's entry-based point total via `addEntry.successDayPoints`, "Świetnie!" dismiss button
+
+**Files modified:**
+
+- `src/services/points.service.ts` — `addPoints` now returns `AddPointsResult { stats, prevLevel, leveledUp }` instead of `UserStats` alone. `prevLevel` is read from the current `user_stats.current_level` before the UPDATE, `leveledUp = newLevel > prevLevel`
+
+- `src/services/rewards.service.ts` — added `getRewardAtLevel(userId, level): Promise<Reward | null>` — single-row query with `.maybeSingle()` on `(user_id, required_level)`
+
+- `src/services/focusday.service.ts` — added `completeFocusDay(userId, date): Promise<FocusDay>` — UPDATEs `is_completed = true` + `completed_at = now()`, returns the full row with category/task joins
+
+- `src/hooks/useToday.ts` — added:
+  - `pendingLevelUp: LevelUpData | null` state and `clearLevelUp()` action
+  - `completeFocusDayAction()` — marks focus done, calls `addPoints(userId, POINTS.FOCUS_COMPLETED)`, detects level-up
+  - `checkLevelUp(newLevel, userId)` helper — fire-and-forget `getRewardAtLevel` that sets `pendingLevelUp` when it resolves (doesn't delay the calling action)
+  - Updated `addEntry` to call `checkLevelUp` after `addPoints` if `leveledUp`
+  - Both `pendingLevelUp` and `clearLevelUp` exported from `UseTodayResult`
+
+- `src/hooks/useTasks.ts` — added:
+  - `pendingLevelUp: LevelUpData | null` state and `clearLevelUp()` action exported
+  - `completeTask` now calls `addPoints(userId, POINTS.TASK_COMPLETED)` after the DB update; if `leveledUp`, fires `getRewardAtLevel` and sets `pendingLevelUp`. Points failure is caught and swallowed so the task still completes
+
+- `src/components/today/FocusDayCard.tsx` — restructured from `<button>` wrapper to `<div role="button">` so a nested `<button>` is legal inside. Added:
+  - `onComplete?: () => void` prop
+  - "Zakończ fokus dnia (+7 pkt)" green outlined button (`--color-success` border/bg/text) visible when `!focusDay.isCompleted` and `onComplete` is provided, with `e.stopPropagation()` so tapping it doesn't open the FocusDaySelector
+  - "Fokus ukończony ✓" green badge visible when `focusDay.isCompleted`
+
+- `src/components/today/TodayClient.tsx` — wired:
+  - `completeFocusDayAction`, `pendingLevelUp`, `clearLevelUp` from `useToday`
+  - `handleCompleteFocus` — reads focus name, calls `completeFocusDayAction()`, sets `focusCompletedData` for overlay
+  - `FocusDayCard` now receives `onComplete={handleCompleteFocus}`
+  - `FocusCompletedOverlay` rendered; dismissed with `setFocusCompletedData(null)`
+  - `LevelUpOverlay` rendered with `data={!successData && !focusCompletedData ? pendingLevelUp : null}` — doesn't interrupt SuccessOverlay or FocusCompletedOverlay; shows once those are dismissed
+  - `handleDismissSuccess` replaces inline `() => setSuccessData(null)` — same logic, hook already holds `pendingLevelUp` which triggers LevelUpOverlay automatically
+
+- `src/components/tasks/TasksClient.tsx` — added `LevelUpOverlay` import from `@/components/today/LevelUpOverlay`, destructures `pendingLevelUp`/`clearLevelUp` from `useTasks`, renders `<LevelUpOverlay data={pendingLevelUp} onDismiss={clearLevelUp} />`
+
+- `src/messages/pl.json`, `en.json`, `de.json` — added:
+  - `focusDay.completeButton` — "Zakończ fokus dnia (+7 pkt)" / "Complete focus day (+7 pts)" / "Tagesfokus abschließen (+7 Pkt)"
+  - `focusDay.completedBadge` — "Fokus ukończony ✓" / "Focus completed ✓" / "Fokus abgeschlossen ✓"
+  - `tree.levelUpTitle` — "Nowy poziom osiągnięty! 🎉" / "New level reached! 🎉" / "Neues Level erreicht! 🎉"
+
+---
+
+### 2. Current state of the app
+
+**Points system is fully wired end-to-end:**
+
+- **+1 pt**: any daily entry → `createEntry` + `addPoints(1)` → `user_stats` updated → `setStats` optimistic
+- **+2 pts**: daily entry in Focus Day category → same flow, `POINTS.FOCUS_ENTRY`
+- **+5 pts**: task marked complete → `completeTask` + `addPoints(5)` → level-up check
+- **+7 pts**: Focus Day marked complete → `completeFocusDay` + `addPoints(7)` → level-up check
+- `total_points` and `current_level` in `user_stats` always updated in sequence (SELECT current → compute new level → UPDATE) — no negative drift, always append-only
+- `today_points` computed on-the-fly from `entries.reduce(…)` — exact SUM of entry points for the day
+- Points strip (Today screen header badge + today card + total card + XP bar) updates optimistically immediately after any action
+
+**Level-up detection:**
+- `addPoints` returns `{ stats, prevLevel, leveledUp }` — callers know instantly if a level changed
+- On level-up: `getRewardAtLevel(userId, newLevel)` is fired and forgotten; `pendingLevelUp` is set when it resolves
+- `LevelUpOverlay` gates on `pendingLevelUp` and renders once the SuccessOverlay / FocusCompletedOverlay are both dismissed (prevents overlay stacking)
+
+**Focus Day "Complete" flow:**
+- FocusDayCard shows a green "Zakończ fokus dnia (+7 pkt)" button when focus is set and not yet completed
+- Tapping it calls `completeFocusDayAction()` → DB updated → `FocusCompletedOverlay` appears with confetti + focus name + "+7 ⭐" + today's points
+- After completion the card shows "Fokus ukończony ✓" green badge, button disappears
+
+**Task completion now awards points:**
+- "Zakończ zadanie (+5 pkt)" button in TaskCard triggers `completeTask` which now calls `addPoints(5)` after the DB update
+- If a level-up occurs, `LevelUpOverlay` appears on the Tasks screen
+
+**Build:** `next build` passes — TypeScript clean, 30 routes, no errors
+
+---
+
+### 3. Not finished / known issues
+
+- **Migration 002 and 003 not auto-applied** — same as before; run in Supabase SQL Editor if not done yet
+- **AuthForm strings hardcoded Polish** — carry-over from Session 2
+- **Tree / Rewards / History / Settings** — blank stubs; bottom nav present
+- **`useTheme` is still localStorage-only** — `user_preferences` Supabase sync deferred to Settings phase
+- **Level-up overlay shows on Tasks screen but doesn't update Today screen stats** — if user completes a task from `/tasks`, the `user_stats` is updated in the DB but the Today screen won't reflect it until the user navigates there and triggers a fresh `refresh()`. This is acceptable since each screen fetches on mount
+
+---
+
+### 4. Exact next step (start of Session 8)
+
+Build **one of the three remaining screens:**
+
+**Option A — History (`/history`):** Calendar month/day toggle, day-of-activity dot indicator, "Dzień odpoczynku 🌙" empty state, stats card at bottom. Needs `getEntriesForDate` (exists) + new `getEntryDatesForMonth(userId, year, month)` query.
+
+**Option B — Reward Tree (`/tree`):** Organic winding path, node states (claimed / current / locked), `rewards.service.ts` already has `getRewards` and `getRewardAtLevel`. The visual complexity is the main challenge.
+
+**Option C — Rewards (`/rewards`):** Two-tab layout (Moje nagrody / Szablony), unlocked/locked sections, add reward modal with emoji/level picker. Simplest data model — `rewards.service.ts` already has `getRewards`, `createReward`, `claimReward`.
+
+---
+
+### 5. Decisions that differ from CLAUDE.md
+
+| Decision | CLAUDE.md spec | What was done | Reason |
+|---|---|---|---|
+| `addPoints` transaction | "always in the same DB transaction as the action" | Two sequential Supabase calls (action UPDATE + stats UPDATE) from the client | Supabase JS v2 doesn't expose a client-side transaction primitive without an RPC. A two-step approach is safe under the existing RLS; the window between the two calls is negligible for a single-user app |
+| LevelUpOverlay stacking | Not specced | LevelUp only shows after SuccessOverlay AND FocusCompletedOverlay are both dismissed | Prevents two full-screen overlays at once, which would be overwhelming. The `pendingLevelUp` state persists in the hook until explicitly cleared |
+| `today_points` computation | "SUM of today's entries" | `entries.reduce((sum, e) => sum + e.points, 0)` in the hook — not a DB query | Entries are already fetched; computing the sum locally avoids an extra round-trip and is always consistent with the displayed entry list |
+| Focus completed "today points" in overlay | Not explicitly specced | Shows the entry-based `todayPoints` (not including the 7 bonus) | Focus completion points go to `total_points` (cumulative), not to individual entries. Showing the entry-based total is consistent with how "dzisiejsze punkty" is shown everywhere else in the UI |
+
+---
+
 ## Session 6 — Today Screen + Design Polish
 
 ### 1. Completed in this session

@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import type { Category, Task } from '@/types'
+import type { Category, Reward, Task } from '@/types'
 import {
   completeTask as completeTaskService,
   createTask as createTaskService,
@@ -9,6 +9,14 @@ import {
   getTasks,
 } from '@/services/tasks.service'
 import { getCategories } from '@/services/categories.service'
+import { addPoints } from '@/services/points.service'
+import { getRewardAtLevel } from '@/services/rewards.service'
+import { POINTS } from '@/lib/constants'
+
+export interface LevelUpData {
+  newLevel: number
+  reward: Reward | null
+}
 
 export interface UseTasksResult {
   tasks: Task[]
@@ -18,6 +26,8 @@ export interface UseTasksResult {
   refresh: () => Promise<void>
   createTask: (payload: { title: string; categoryId: string }) => Promise<void>
   completeTask: (taskId: string) => Promise<void>
+  pendingLevelUp: LevelUpData | null
+  clearLevelUp: () => void
 }
 
 export function useTasks(userId: string | null): UseTasksResult {
@@ -25,6 +35,9 @@ export function useTasks(userId: string | null): UseTasksResult {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
+  const [pendingLevelUp, setPendingLevelUp] = useState<LevelUpData | null>(null)
+
+  const clearLevelUp = useCallback(() => setPendingLevelUp(null), [])
 
   const refresh = useCallback(async () => {
     if (!userId) return
@@ -68,7 +81,18 @@ export function useTasks(userId: string | null): UseTasksResult {
         t.id === taskId ? { ...t, isCompleted: true, completedAt } : t
       )
     )
-  }, [])
+    if (!userId) return
+    try {
+      const result = await addPoints(userId, POINTS.TASK_COMPLETED)
+      if (result.leveledUp) {
+        void getRewardAtLevel(userId, result.stats.currentLevel).then((reward) => {
+          setPendingLevelUp({ newLevel: result.stats.currentLevel, reward })
+        })
+      }
+    } catch {
+      // Don't fail task completion if points update fails
+    }
+  }, [userId])
 
-  return { tasks, categories, loading, error, refresh, createTask, completeTask }
+  return { tasks, categories, loading, error, refresh, createTask, completeTask, pendingLevelUp, clearLevelUp }
 }

@@ -42,6 +42,8 @@
     "reminder": "Każdy wpis w Twoim fokusie dnia to +{entry} pkt. Zakończenie fokusa dnia to aż +{complete} pkt! 🎉",
     "saveButton": "Zapisz fokus",
     "removeButton": "Usuń",
+    "completeButton": "Zakończ fokus dnia (+7 pkt)",
+    "completedBadge": "Fokus ukończony ✓",
     "completedTitle": "Fokus dnia zakończony! 🎉",
     "completedSubtitle": "Niesamowite! Ukończyłaś swój fokus:",
     "completedPoints": "+{points} ⭐ punktów",
@@ -88,6 +90,7 @@
     "nodeUnlocked": "Odblokowane ✓",
     "nodeLocked": "{points} pkt do odblokowania",
     "unlockTitle": "Nowa nagroda odblokowana! 🎉",
+    "levelUpTitle": "Nowy poziom osiągnięty! 🎉",
     "unlockSubtitle": "Osiągnąłeś poziom {level} 🎉",
     "unlockDismiss": "Super! ✨"
   },

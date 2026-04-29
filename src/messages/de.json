@@ -42,6 +42,8 @@
     "reminder": "Jeder Eintrag in deinem Tagesfokus = +{entry} Pkt. Fokus abschließen = +{complete} Pkt! 🎉",
     "saveButton": "Fokus speichern",
     "removeButton": "Entfernen",
+    "completeButton": "Tagesfokus abschließen (+7 Pkt)",
+    "completedBadge": "Fokus abgeschlossen ✓",
     "completedTitle": "Tagesfokus abgeschlossen! 🎉",
     "completedSubtitle": "Fantastisch! Du hast deinen Fokus abgeschlossen:",
     "completedPoints": "+{points} ⭐ Punkte",
@@ -88,6 +90,7 @@
     "nodeUnlocked": "Freigeschaltet ✓",
     "nodeLocked": "{points} Pkt bis zur Freischaltung",
     "unlockTitle": "Neue Belohnung freigeschaltet! 🎉",
+    "levelUpTitle": "Neues Level erreicht! 🎉",
     "unlockSubtitle": "Du hast Level {level} erreicht 🎉",
     "unlockDismiss": "Super! ✨"
   },

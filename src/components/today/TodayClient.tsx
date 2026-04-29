@@ -11,6 +11,8 @@ import { FocusDayCard } from './FocusDayCard'
 import { FocusDaySelector } from './FocusDaySelector'
 import { AddEntryModal } from './AddEntryModal'
 import { SuccessOverlay } from './SuccessOverlay'
+import { LevelUpOverlay } from './LevelUpOverlay'
+import { FocusCompletedOverlay } from './FocusCompletedOverlay'
 import { LEVEL_THRESHOLDS } from '@/lib/constants'
 
 interface TodayClientProps {
@@ -23,7 +25,21 @@ interface SuccessData {
   todayPoints: number
 }
 
+interface FocusCompletedData {
+  focusName: string
+  todayPoints: number
+}
+
 const MOTIVATIONAL_COUNT = 4
+
+/** Stable index from date string — avoids hydration mismatch from Math.random(). */
+function motivationalIndexForDate(dateStr: string): number {
+  let h = 0
+  for (let i = 0; i < dateStr.length; i++) {
+    h = Math.imul(31, h) + dateStr.charCodeAt(i)
+  }
+  return Math.abs(h) % MOTIVATIONAL_COUNT
+}
 
 export function TodayClient({ userId }: TodayClientProps) {
   const t = useTranslations('today')
@@ -40,18 +56,23 @@ export function TodayClient({ userId }: TodayClientProps) {
     todayPoints,
     loading,
     today,
+    pendingLevelUp,
+    clearLevelUp,
     addEntry,
     saveFocusDay,
     removeFocusDay,
+    completeFocusDayAction,
   } = useToday(userId)
 
   const [focusSelectorOpen, setFocusSelectorOpen] = useState(false)
   const [addEntryOpen, setAddEntryOpen] = useState(false)
   const [successData, setSuccessData] = useState<SuccessData | null>(null)
+  const [focusCompletedData, setFocusCompletedData] = useState<FocusCompletedData | null>(null)
+  const [completingFocus, setCompletingFocus] = useState(false)
 
   const motivationalIndex = useMemo(
-    () => Math.floor(Math.random() * MOTIVATIONAL_COUNT),
-    []
+    () => motivationalIndexForDate(today),
+    [today]
   )
   const motivationalKey = `motivational_${motivationalIndex}` as
     | 'motivational_0'
@@ -91,6 +112,29 @@ export function TodayClient({ userId }: TodayClientProps) {
     })
   }
 
+  // When SuccessOverlay is dismissed, show LevelUpOverlay if one is pending
+  const handleDismissSuccess = () => {
+    setSuccessData(null)
+    // pendingLevelUp is already set in the hook; LevelUpOverlay will render
+  }
+
+  const handleCompleteFocus = async () => {
+    if (!focusDay || focusDay.isCompleted || completingFocus) return
+    setCompletingFocus(true)
+    try {
+      const cat = focusDay.category ?? categories.find((c) => c.id === focusDay.categoryId)
+      const focusName = focusDay.customTitle
+        ? focusDay.customTitle
+        : cat
+          ? getCategoryDisplayName(cat, tCat)
+          : ''
+      await completeFocusDayAction()
+      setFocusCompletedData({ focusName, todayPoints })
+    } finally {
+      setCompletingFocus(false)
+    }
+  }
+
   return (
     <main style={styles.page}>
       {/* Header */}
@@ -115,6 +159,7 @@ export function TodayClient({ userId }: TodayClientProps) {
         focusDay={focusDay}
         categories={categories}
         onEdit={() => setFocusSelectorOpen(true)}
+        onComplete={handleCompleteFocus}
       />
 
       {/* Points strip */}
@@ -212,9 +257,21 @@ export function TodayClient({ userId }: TodayClientProps) {
         onSuccess={handleSuccess}
       />
 
+      {/* Overlays — SuccessOverlay first, then LevelUpOverlay on dismiss */}
       <SuccessOverlay
         data={successData}
-        onDismiss={() => setSuccessData(null)}
+        onDismiss={handleDismissSuccess}
+      />
+
+      <FocusCompletedOverlay
+        data={focusCompletedData}
+        onDismiss={() => setFocusCompletedData(null)}
+      />
+
+      {/* LevelUpOverlay shows only when no other overlay is visible */}
+      <LevelUpOverlay
+        data={!successData && !focusCompletedData ? pendingLevelUp : null}
+        onDismiss={clearLevelUp}
       />
     </main>
   )
@@ -391,9 +448,6 @@ const styles: Record<string, React.CSSProperties> = {
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
-  },
-  focusStar: {
-    fontSize: 12,
   },
   entryMeta: {
     fontSize: 12,

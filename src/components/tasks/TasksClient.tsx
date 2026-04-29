@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Plus } from 'lucide-react'
 import { useTasks } from '@/hooks/useTasks'
+import { LevelUpOverlay } from '@/components/today/LevelUpOverlay'
 import { Tabs, type TaskTab } from './Tabs'
 import { CategoryChips } from './CategoryChips'
 import { TaskCard } from './TaskCard'
@@ -18,7 +19,7 @@ export function TasksClient({ userId }: TasksClientProps) {
   const t = useTranslations('tasks')
   const tCommon = useTranslations('common')
 
-  const { tasks, categories, loading, createTask, completeTask } =
+  const { tasks, categories, loading, createTask, completeTask, pendingLevelUp, clearLevelUp } =
     useTasks(userId)
 
   const [tab, setTab] = useState<TaskTab>('all')
@@ -134,6 +135,8 @@ export function TasksClient({ userId }: TasksClientProps) {
         onClose={() => setModalOpen(false)}
         onSubmit={createTask}
       />
+
+      <LevelUpOverlay data={pendingLevelUp} onDismiss={clearLevelUp} />
     </main>
   )
 }

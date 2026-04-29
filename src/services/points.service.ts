@@ -2,6 +2,12 @@ import type { UserStats } from '@/types'
 import { LEVEL_THRESHOLDS } from '@/lib/constants'
 import { createClient } from './supabase'
 
+export interface AddPointsResult {
+  stats: UserStats
+  prevLevel: number
+  leveledUp: boolean
+}
+
 export async function getUserStats(userId: string): Promise<UserStats | null> {
   const supabase = createClient()
   const { data, error } = await supabase
@@ -14,10 +20,11 @@ export async function getUserStats(userId: string): Promise<UserStats | null> {
   return mapStats(data)
 }
 
-export async function addPoints(userId: string, pointsToAdd: number): Promise<UserStats> {
+export async function addPoints(userId: string, pointsToAdd: number): Promise<AddPointsResult> {
   const supabase = createClient()
 
   const current = await getUserStats(userId)
+  const prevLevel = current?.currentLevel ?? 1
   const currentTotal = current?.totalPoints ?? 0
   const newTotal = currentTotal + pointsToAdd
   const newLevel = computeLevel(newTotal)
@@ -34,7 +41,7 @@ export async function addPoints(userId: string, pointsToAdd: number): Promise<Us
     .single()
 
   if (error) throw error
-  return mapStats(data)
+  return { stats: mapStats(data), prevLevel, leveledUp: newLevel > prevLevel }
 }
 
 function computeLevel(totalPoints: number): number {

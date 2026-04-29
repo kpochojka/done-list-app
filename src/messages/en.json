@@ -42,6 +42,8 @@
     "reminder": "Every entry in your focus day = +{entry} pts. Completing focus day = +{complete} pts! 🎉",
     "saveButton": "Save focus",
     "removeButton": "Remove",
+    "completeButton": "Complete focus day (+7 pts)",
+    "completedBadge": "Focus completed ✓",
     "completedTitle": "Focus day completed! 🎉",
     "completedSubtitle": "Amazing! You completed your focus:",
     "completedPoints": "+{points} ⭐ points",
@@ -88,6 +90,7 @@
     "nodeUnlocked": "Unlocked ✓",
     "nodeLocked": "{points} pts to unlock",
     "unlockTitle": "New reward unlocked! 🎉",
+    "levelUpTitle": "New level reached! 🎉",
     "unlockSubtitle": "You reached level {level} 🎉",
     "unlockDismiss": "Nice! ✨"
   },

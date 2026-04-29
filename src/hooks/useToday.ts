@@ -1,10 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import type { Category, DailyEntry, FocusDay, Task, UserStats } from '@/types'
+import type { Category, DailyEntry, FocusDay, Reward, Task, UserStats } from '@/types'
 import { getEntriesForDate, createEntry } from '@/services/entries.service'
-import { getFocusDay, upsertFocusDay, deleteFocusDay } from '@/services/focusday.service'
+import { getFocusDay, upsertFocusDay, deleteFocusDay, completeFocusDay } from '@/services/focusday.service'
 import { getUserStats, addPoints } from '@/services/points.service'
+import { getRewardAtLevel } from '@/services/rewards.service'
 import { getCategories } from '@/services/categories.service'
 import { getTasks } from '@/services/tasks.service'
 import { POINTS } from '@/lib/constants'
@@ -17,6 +18,11 @@ function getLocalDateString(): string {
   return `${y}-${m}-${day}`
 }
 
+export interface LevelUpData {
+  newLevel: number
+  reward: Reward | null
+}
+
 export interface UseTodayResult {
   entries: DailyEntry[]
   focusDay: FocusDay | null
@@ -26,6 +32,8 @@ export interface UseTodayResult {
   todayPoints: number
   loading: boolean
   today: string
+  pendingLevelUp: LevelUpData | null
+  clearLevelUp: () => void
   addEntry: (payload: {
     taskId: string | null
     categoryId: string
@@ -37,6 +45,7 @@ export interface UseTodayResult {
     customTitle?: string | null
   }) => Promise<void>
   removeFocusDay: () => Promise<void>
+  completeFocusDayAction: () => Promise<void>
 }
 
 export function useToday(userId: string | null): UseTodayResult {
@@ -48,8 +57,11 @@ export function useToday(userId: string | null): UseTodayResult {
   const [categories, setCategories] = useState<Category[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
+  const [pendingLevelUp, setPendingLevelUp] = useState<LevelUpData | null>(null)
 
   const todayPoints = entries.reduce((sum, e) => sum + e.points, 0)
+
+  const clearLevelUp = useCallback(() => setPendingLevelUp(null), [])
 
   const refresh = useCallback(async () => {
     if (!userId) return
@@ -76,6 +88,16 @@ export function useToday(userId: string | null): UseTodayResult {
     void refresh()
   }, [refresh])
 
+  /** Fire-and-forget level-up check after any addPoints call. */
+  const checkLevelUp = useCallback(
+    (newLevel: number, currentUserId: string) => {
+      void getRewardAtLevel(currentUserId, newLevel).then((reward) => {
+        setPendingLevelUp({ newLevel, reward })
+      })
+    },
+    []
+  )
+
   const addEntry = useCallback(
     async (payload: {
       taskId: string | null
@@ -98,12 +120,13 @@ export function useToday(userId: string | null): UseTodayResult {
 
       setEntries((prev) => [entry, ...prev])
 
-      const newStats = await addPoints(userId, points)
-      setStats(newStats)
+      const result = await addPoints(userId, points)
+      setStats(result.stats)
+      if (result.leveledUp) checkLevelUp(result.stats.currentLevel, userId)
 
       return entry
     },
-    [userId, today, focusDay]
+    [userId, today, focusDay, checkLevelUp]
   )
 
   const saveFocusDay = useCallback(
@@ -125,6 +148,15 @@ export function useToday(userId: string | null): UseTodayResult {
     setFocusDayState(null)
   }, [userId, today])
 
+  const completeFocusDayAction = useCallback(async (): Promise<void> => {
+    if (!userId || !focusDay || focusDay.isCompleted) return
+    const updated = await completeFocusDay(userId, today)
+    setFocusDayState(updated)
+    const result = await addPoints(userId, POINTS.FOCUS_COMPLETED)
+    setStats(result.stats)
+    if (result.leveledUp) checkLevelUp(result.stats.currentLevel, userId)
+  }, [userId, today, focusDay, checkLevelUp])
+
   return {
     entries,
     focusDay,
@@ -134,8 +166,11 @@ export function useToday(userId: string | null): UseTodayResult {
     todayPoints,
     loading,
     today,
+    pendingLevelUp,
+    clearLevelUp,
     addEntry,
     saveFocusDay,
     removeFocusDay,
+    completeFocusDayAction,
   }
 }
