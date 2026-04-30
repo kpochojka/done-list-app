@@ -92,7 +92,8 @@
     "unlockTitle": "Neue Belohnung freigeschaltet! 🎉",
     "levelUpTitle": "Neues Level erreicht! 🎉",
     "unlockSubtitle": "Du hast Level {level} erreicht 🎉",
-    "unlockDismiss": "Super! ✨"
+    "unlockDismiss": "Super! ✨",
+    "noRewardSet": "Keine Belohnung"
   },
   "rewards": {
     "title": "Belohnungen",

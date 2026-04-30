@@ -2,6 +2,76 @@
 
 ---
 
+## Session 8 — Reward Tree Screen
+
+### 1. Completed in this session
+
+**Files created:**
+
+- `src/hooks/useTree.ts` — fetches rewards + user stats in parallel, builds `TreeNode[]` from `LEVEL_THRESHOLDS` joined with rewards by `requiredLevel`. Each node gets state `claimed` (level < currentLevel) / `current` (level === currentLevel) / `locked` (level > currentLevel). On mount, compares `currentLevel` to `localStorage.tree_lastSeenLevel`; if higher, fires `getRewardAtLevel` and sets `pendingLevelUp` to trigger the overlay. `clearLevelUp` writes the new level to localStorage so the overlay only fires once per level-up.
+
+- `src/components/tree/TreeClient.tsx` — the full tree screen:
+  - Header: Sprout lucide icon in a primary-subtle square tile + "Drzewo nagród" h1
+  - Summary card: "Masz X punktów" label + "Poziom N" pill badge + optional "Do poziomu N zostało X pkt" hint + 6px XP progress bar (gradient fill, 0.5s transition)
+  - Winding path: `position: relative` container with a 2px center spine (`var(--border-default)`). Nodes alternate left/right (`i % 2 === 1` → card on left, circle on right-empty side). `NodeCard` inner component shows: 52×52 image box (emoji fallback) + lock overlay for locked state + green ✓ badge for claimed state + title + point range + state badge. `LevelCircle` inner component shows: green circle (claimed), primary with glow ring (current), grey/dim (locked)
+  - `LevelUpOverlay` wired from `pendingLevelUp` / `clearLevelUp` — shows the unlock animation when the user visits the tree after leveling up for the first time
+
+**Files modified:**
+
+- `src/app/[locale]/(main)/tree/page.tsx` — replaced `return null` stub; authenticates via `createServerSupabaseClient`, redirects to `/login` if no session, renders `<TreeClient userId={user.id} />`
+
+- `src/messages/pl.json`, `en.json`, `de.json` — added `tree.noRewardSet`: "Brak nagrody" / "No reward set" / "Keine Belohnung"
+
+---
+
+### 2. Current state of the app
+
+**Tree screen (`/tree`) fully implemented:**
+
+- Top summary card shows total points, current level, and progress toward next level with a subtle gradient XP bar
+- 10 nodes rendered in alternating left/right winding path layout with a center spine line
+- Node states:
+  - `claimed` (past levels): green circle, green "Odblokowane ✓" badge, green ✓ dot on image
+  - `current` (user's level): primary purple circle with glow ring, primary card border with glow, primary "Odblokowane ✓" badge
+  - `locked` (future levels): grey dimmed circle, grey/dim card, lock icon overlay on image, "N pkt do odblokowania" badge
+- Nodes without rewards show a placeholder emoji (🎀 claimed, ✨ current, 🎁 locked) and "Brak nagrody" text
+- Nodes with rewards show reward image (or emoji fallback) + title
+- `LevelUpOverlay` fires once per level-up when the user first navigates to the tree (localStorage gate via `tree_lastSeenLevel`)
+
+**Build:** `next build` passes — TypeScript clean, 30 routes, no errors
+
+---
+
+### 3. Not finished / known issues
+
+- **Migration 002 and 003 not auto-applied** — same as before
+- **AuthForm strings hardcoded Polish** — carry-over from Session 2
+- **Rewards / History / Settings** — blank stubs; bottom nav present
+- **`useTheme` is still localStorage-only** — `user_preferences` Supabase sync deferred to Settings phase
+- **No rewards seeded by default** — a new user sees 10 placeholder nodes with "Brak nagrody". The Rewards screen (next to build) lets users create rewards
+
+---
+
+### 4. Exact next step (start of Session 9)
+
+Build **one of the two remaining screens:**
+
+**Option A — Rewards (`/rewards`):** Two-tab layout (Moje nagrody / Szablony), unlocked/locked sections, add reward modal with emoji/level picker. `rewards.service.ts` already has `getRewards`, `createReward`, `claimReward`.
+
+**Option B — History (`/history`):** Calendar month/day toggle, day-of-activity dot indicator, "Dzień odpoczynku 🌙" empty state, stats card at bottom. Needs `getEntriesForDate` (exists) + new `getEntryDatesForMonth` query.
+
+---
+
+### 5. Decisions that differ from CLAUDE.md
+
+| Decision | CLAUDE.md spec | What was done | Reason |
+|---|---|---|---|
+| Tree direction | "Organic winding path from bottom to top" | Level 1 at top, level 10 at bottom (standard vertical scroll) | Mobile scroll is top-to-bottom; showing current/past progress at top and future aspirational rewards below is more natural for ADHD users who want to see what they've earned first |
+| Unlock animation gate | Not specced for tree screen specifically | localStorage `tree_lastSeenLevel` key; overlay fires once when navigating to tree after leveling up | Prevents the overlay from firing every visit; the level-up is already shown in Today/Tasks but this catches the case where the user earns points elsewhere |
+| `claimed` state meaning | "user claims reward" | All levels below currentLevel show as `claimed` (green ✓), regardless of `reward.isClaimed` | Simplifies the visual: every past level is a "win." The `reward.isClaimed` flag is still checked for the small ✓ badge on the image, so the distinction is preserved at a fine-grained level |
+
+---
+
 ## Session 7 — Full Points & Levels System
 
 ### 1. Completed in this session

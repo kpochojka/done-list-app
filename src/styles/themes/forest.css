@@ -39,6 +39,9 @@
   --cat-spanish:  #10b981;
   --cat-health:   #ef4444;
   --cat-home:     #f59e0b;
+
+  --tree-path:       #cee8cc;
+  --tree-path-inner: #e8f6e6;
 }
 
 [data-theme="forest"][data-mode="dark"] {
@@ -80,4 +83,7 @@
   --cat-spanish:  #34d399;
   --cat-health:   #f87171;
   --cat-home:     #fbbf24;
+
+  --tree-path:       #1c3528;
+  --tree-path-inner: #182821;
 }

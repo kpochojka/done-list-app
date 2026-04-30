@@ -92,7 +92,8 @@
     "unlockTitle": "Nowa nagroda odblokowana! 🎉",
     "levelUpTitle": "Nowy poziom osiągnięty! 🎉",
     "unlockSubtitle": "Osiągnąłeś poziom {level} 🎉",
-    "unlockDismiss": "Super! ✨"
+    "unlockDismiss": "Super! ✨",
+    "noRewardSet": "Brak nagrody"
   },
   "rewards": {
     "title": "Nagrody",

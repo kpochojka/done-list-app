@@ -92,7 +92,8 @@
     "unlockTitle": "New reward unlocked! 🎉",
     "levelUpTitle": "New level reached! 🎉",
     "unlockSubtitle": "You reached level {level} 🎉",
-    "unlockDismiss": "Nice! ✨"
+    "unlockDismiss": "Nice! ✨",
+    "noRewardSet": "No reward set"
   },
   "rewards": {
     "title": "Rewards",
